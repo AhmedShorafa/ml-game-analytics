@@ -1,0 +1,148 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Tic Tac Toe - Smart Edition</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-image: linear-gradient(to bottom, #74ebd5, #acb6e5);
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      justify-content: center;
+    }
+    h1 {
+      font-size: 3em;
+      color: #ffffff;
+      text-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+      margin-bottom: 30px;
+    }
+    table {
+      border-collapse: collapse;
+      box-shadow: 0 0 25px rgba(0,0,0,0.2);
+      background-color: #ffffff;
+    }
+    td {
+      width: 120px;
+      height: 120px;
+      border: 3px solid #555;
+      font-size: 3em;
+      text-align: center;
+      cursor: pointer;
+      transition: background 0.3s, transform 0.2s;
+    }
+    td:hover {
+      background-color: #f0f0f0;
+      transform: scale(1.05);
+    }
+    td.X { color: #1565C0; font-weight: bold; }
+    td.O { color: #D32F2F; font-weight: bold; }
+    button {
+      margin-top: 30px;
+      padding: 15px 30px;
+      font-size: 1.2em;
+      background-color: #43A047;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background-color: #2E7D32;
+    }
+    #result {
+      font-size: 1.5em;
+      margin-top: 20px;
+      color: #fff;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.4);
+    }
+  </style>
+</head>
+<body>
+  <h1>XO - Tic Tac Toe Smart Edition</h1>
+  <table id="board">
+    <tr><td data-cell="0,0"></td><td data-cell="0,1"></td><td data-cell="0,2"></td></tr>
+    <tr><td data-cell="1,0"></td><td data-cell="1,1"></td><td data-cell="1,2"></td></tr>
+    <tr><td data-cell="2,0"></td><td data-cell="2,1"></td><td data-cell="2,2"></td></tr>
+  </table>
+  <button onclick="resetGame()">إعادة اللعب</button>
+  <p id="result"></p>
+
+  <script>
+    let currentPlayer = "X";
+    let moves = [];
+    const board = document.getElementById("board");
+    const resultDisplay = document.getElementById("result");
+
+    board.addEventListener("click", function(e) {
+      const cell = e.target;
+      if (cell.tagName !== "TD" || cell.textContent !== "") return;
+      const cellPos = cell.getAttribute("data-cell");
+
+      cell.textContent = currentPlayer;
+      cell.classList.add(currentPlayer);
+
+      moves.push({
+        player: currentPlayer,
+        cell: cellPos,
+        time: new Date().toISOString()
+      });
+
+      if (checkWinner()) {
+        resultDisplay.textContent = `اللاعب ${currentPlayer} فاز!`;
+        moves.push({ result: `${currentPlayer} won` });
+        downloadJSON(moves);
+        board.style.pointerEvents = "none";
+      } else if (moves.length === 9) {
+        resultDisplay.textContent = "تعادل!";
+        moves.push({ result: "Draw" });
+        downloadJSON(moves);
+      } else {
+        currentPlayer = currentPlayer === "X" ? "O" : "X";
+      }
+    });
+
+    function checkWinner() {
+      const lines = [
+        [[0,0],[0,1],[0,2]], [[1,0],[1,1],[1,2]], [[2,0],[2,1],[2,2]],
+        [[0,0],[1,0],[2,0]], [[0,1],[1,1],[2,1]], [[0,2],[1,2],[2,2]],
+        [[0,0],[1,1],[2,2]], [[0,2],[1,1],[2,0]]
+      ];
+      return lines.some(line => {
+        const [a,b,c] = line;
+        const cellA = document.querySelector(`[data-cell='${a}']`).textContent;
+        const cellB = document.querySelector(`[data-cell='${b}']`).textContent;
+        const cellC = document.querySelector(`[data-cell='${c}']`).textContent;
+        return cellA && cellA === cellB && cellB === cellC;
+      });
+    }
+
+    function resetGame() {
+      for (const td of board.querySelectorAll("td")) {
+        td.textContent = "";
+        td.classList.remove("X", "O");
+      }
+      currentPlayer = "X";
+      moves = [];
+      resultDisplay.textContent = "";
+      board.style.pointerEvents = "auto";
+    }
+
+    function downloadJSON(data) {
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "tic_tac_toe_data.json";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  </script>
+</body>
+</html>
